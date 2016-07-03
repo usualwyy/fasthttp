@@ -597,6 +597,19 @@ func (c *HostClient) Post(dst []byte, url string, postArgs *Args) (statusCode in
 	return clientPostURL(dst, url, postArgs, c)
 }
 
+func (c *HostClient) PostWithReq(dst []byte, url string, postArgs *Args, c clientDoer, req *Request) (statusCode int, body []byte, err error) {
+	req.Header.SetMethodBytes(strPost)
+	req.Header.SetContentTypeBytes(strPostArgsContentType)
+	if postArgs != nil {
+		postArgs.WriteTo(req.BodyWriter())
+	}
+
+	statusCode, body, err = doRequestFollowRedirects(req, dst, url, c)
+
+	ReleaseRequest(req)
+	return statusCode, body, err
+}
+
 type clientDoer interface {
 	Do(req *Request, resp *Response) error
 }
